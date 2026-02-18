@@ -28,17 +28,39 @@
 
 <div class="note">
   Same logic, different IME signals<br/>
-  ✅ Expected to work cleanly
+   Expected to work cleanly
 </div>
 
 <script>
   function maskSSN(input) {
-    let digits = input.value.replace(/\D/g, '').slice(0, 9);
+    // initialize per-input raw buffer
+    if (!input._raw) {
+      input._raw = '';
+    }
 
+    // get the last typed character (IME-safe enough for repro)
+    const value = input.value;
+    const lastChar = value[value.length - 1];
+
+    // handle digit entry
+    if (/\d/.test(lastChar) && input._raw.length < 9) {
+      input._raw += lastChar;
+    }
+
+    // handle backspace/delete
+    if (value.length < input._lastLength) {
+      input._raw = input._raw.slice(0, -1);
+    }
+
+    input._lastLength = value.length;
+
+    const d = input._raw;
+
+    // build masked display (XXX-XX-0000)
     let masked = '';
-    if (digits.length > 0) masked += '***'.slice(0, Math.min(3, digits.length));
-    if (digits.length > 3) masked += '-**'.slice(0, Math.min(3, digits.length - 2));
-    if (digits.length > 5) masked += '-' + digits.slice(5);
+    if (d.length > 0) masked += '*'.repeat(Math.min(3, d.length));
+    if (d.length > 3) masked += '-' + '*'.repeat(Math.min(2, d.length - 3));
+    if (d.length > 5) masked += '-' + d.slice(5);
 
     input.value = masked;
   }
