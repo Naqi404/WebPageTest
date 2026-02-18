@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>SSN – Fixed (Proposed)</title>
+
+  <style>
+    body { font-family: Arial, sans-serif; padding: 20px; }
+    input { font-size: 18px; padding: 10px; width: 100%; }
+    .note { margin-top: 10px; color: #0a7a0a; }
+  </style>
+</head>
+<body>
+
+<h2>SSN Input – Proposed Fix (Working)</h2>
+
+<input
+  type="tel"
+  inputmode="numeric"
+  autocomplete="off"
+  autocorrect="off"
+  autocapitalize="off"
+  spellcheck="false"
+  placeholder="XXX-XX-XXXX"
+  oninput="maskSSN(this)"
+/>
+
+<div class="note">
+  Same logic, different IME signals<br/>
+  ✅ Expected to work cleanly
+</div>
+
+<script>
+  function maskSSN(input) {
+    let digits = input.value.replace(/\D/g, '').slice(0, 9);
+
+    let masked = '';
+    if (digits.length > 0) masked += '***'.slice(0, Math.min(3, digits.length));
+    if (digits.length > 3) masked += '-**'.slice(0, Math.min(3, digits.length - 2));
+    if (digits.length > 5) masked += '-' + digits.slice(5);
+
+    input.value = masked;
+  }
+</script>
+
+</body>
+</html>
