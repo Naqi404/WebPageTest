@@ -68,16 +68,27 @@
   </div>
 
   <script>
-    function maskSSN(input) {
-      let digits = input.value.replace(/\D/g, '').slice(0, 9);
-      let formatted = '';
+  function maskSSN(input) {
+    const digits = input.value.replace(/\D/g, '').slice(0, 9);
 
-      if (digits.length > 0) formatted = digits.slice(0, 3);
-      if (digits.length >= 4) formatted += '-' + digits.slice(3, 5);
-      if (digits.length >= 6) formatted += '-' + digits.slice(5, 9);
+    let masked = '';
 
-      input.value = formatted;
+    if (digits.length > 0) {
+      masked += '*'.repeat(Math.min(3, digits.length));
     }
-  </script>
+
+    if (digits.length > 3) {
+      masked += '-';
+      masked += '*'.repeat(Math.min(2, digits.length - 3));
+    }
+
+    if (digits.length > 5) {
+      masked += '-';
+      masked += digits.slice(5, 9);
+    }
+
+    input.value = masked;
+  }
+</script>
 </body>
 </html>
