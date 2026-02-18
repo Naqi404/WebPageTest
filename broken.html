@@ -3,8 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>SSN – Broken (Current)</title>
-
+  <title>SSN – Improved</title>
   <style>
     body { font-family: Arial, sans-serif; padding: 20px; }
     input { font-size: 18px; padding: 10px; width: 100%; }
@@ -13,51 +12,99 @@
 </head>
 <body>
 
-<h2>SSN Input – Current Behavior (Broken)</h2>
+<h2>SSN Input – Improved Behavior</h2>
 
 <input
   type="text"
+  id="ssnInput"
   placeholder="XXX-XX-XXXX"
-  oninput="maskSSN(this)"
+  maxlength="11"
+  inputmode="numeric"
 />
 
 <div class="note">
   Samsung Galaxy + Samsung Keyboard + Predictive Text ON<br/>
-  Expected to truncate / autocorrect / fail
+  Now handles IME composition and backspace properly
 </div>
 
 <script>
-  function maskSSN(input) {
-    // initialize per-input raw buffer
-    if (!input._raw) {
-      input._raw = '';
+  const input = document.getElementById('ssnInput');
+  let isComposing = false;
+  let rawValue = '';
+
+  // Track IME composition state
+  input.addEventListener('compositionstart', (e) => {
+    isComposing = true;
+  });
+
+  input.addEventListener('compositionend', (e) => {
+    isComposing = false;
+    handleInput(e);
+  });
+
+  // Main input handler
+  input.addEventListener('input', (e) => {
+    if (!isComposing) {
+      handleInput(e);
     }
+  });
 
-    // get the last typed character (IME-safe enough for repro)
-    const value = input.value;
-    const lastChar = value[value.length - 1];
-
-    // handle digit entry
-    if (/\d/.test(lastChar) && input._raw.length < 9) {
-      input._raw += lastChar;
+  // Handle backspace with keydown (more reliable)
+  input.addEventListener('keydown', (e) => {
+    if (e.key === 'Backspace' && !isComposing) {
+      // Remove last digit from raw value
+      if (rawValue.length > 0) {
+        rawValue = rawValue.slice(0, -1);
+        updateDisplay();
+        e.preventDefault();
+      }
     }
+  });
 
-    // handle backspace/delete
-    if (value.length < input._lastLength) {
-      input._raw = input._raw.slice(0, -1);
+  function handleInput(e) {
+    // Get cursor position before changes
+    const cursorPos = input.selectionStart;
+    const oldLength = input.value.length;
+    
+    // Extract only digits from current value
+    const digits = input.value.replace(/\D/g, '');
+    
+    // Determine if user is adding or removing
+    if (digits.length >= rawValue.length) {
+      // Adding digits
+      rawValue = digits.substring(0, 9); // Max 9 digits for SSN
+    } else {
+      // Removing digits (already handled in keydown for backspace)
+      rawValue = digits;
     }
+    
+    updateDisplay(cursorPos, oldLength);
+  }
 
-    input._lastLength = value.length;
-
-    const d = input._raw;
-
-    // build masked display (XXX-XX-0000)
+  function updateDisplay(oldCursorPos = null, oldLength = null) {
+    const d = rawValue;
+    
+    // Build masked display (XXX-XX-0000)
     let masked = '';
     if (d.length > 0) masked += '*'.repeat(Math.min(3, d.length));
     if (d.length > 3) masked += '-' + '*'.repeat(Math.min(2, d.length - 3));
     if (d.length > 5) masked += '-' + d.slice(5);
-
+    
     input.value = masked;
+    
+    // Restore cursor position intelligently
+    if (oldCursorPos !== null && oldLength !== null) {
+      const newLength = masked.length;
+      const diff = newLength - oldLength;
+      let newCursorPos = oldCursorPos + diff;
+      
+      // Ensure cursor is at valid position
+      newCursorPos = Math.max(0, Math.min(newCursorPos, masked.length));
+      
+      setTimeout(() => {
+        input.setSelectionRange(newCursorPos, newCursorPos);
+      }, 0);
+    }
   }
 </script>
 
