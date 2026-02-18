@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>SSN – Broken (Current)</title>
+
+  <style>
+    body { font-family: Arial, sans-serif; padding: 20px; }
+    input { font-size: 18px; padding: 10px; width: 100%; }
+    .note { margin-top: 10px; color: #b00020; }
+  </style>
+</head>
+<body>
+
+<h2>SSN Input – Current Behavior (Broken)</h2>
+
+<input
+  type="text"
+  placeholder="XXX-XX-XXXX"
+  oninput="maskSSN(this)"
+/>
+
+<div class="note">
+  Samsung Galaxy + Samsung Keyboard + Predictive Text ON<br/>
+  ❌ Expected to truncate / autocorrect / fail
+</div>
+
+<script>
+  function maskSSN(input) {
+    // Grab digits only
+    let digits = input.value.replace(/\D/g, '').slice(0, 9);
+
+    // Build masked value (live mutation)
+    let masked = '';
+    if (digits.length > 0) masked += '***'.slice(0, Math.min(3, digits.length));
+    if (digits.length > 3) masked += '-**'.slice(0, Math.min(3, digits.length - 2));
+    if (digits.length > 5) masked += '-' + digits.slice(5);
+
+    // THIS is what Samsung Keyboard fights with
+    input.value = masked;
+  }
+</script>
+
+</body>
+</html>
