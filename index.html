@@ -67,24 +67,23 @@
     </div>
   </div>
 
-  <script>
-  function maskSSN(input) {
-    // Initialize raw storage if missing
+ <script>
+  function maskSSN(input, event) {
+    // Initialize raw storage
     if (!input._rawDigits) {
       input._rawDigits = '';
     }
 
-    // Get the last typed character
-    const lastChar = input.value.slice(-1);
-
-    // Handle backspace / delete
-    if (lastChar === '') {
+    // Handle deletes explicitly
+    if (event.inputType === 'deleteContentBackward' ||
+        event.inputType === 'deleteContentForward') {
       input._rawDigits = input._rawDigits.slice(0, -1);
     }
-    // Handle digit input
-    else if (/\d/.test(lastChar)) {
+
+    // Handle digit insertion
+    if (event.inputType === 'insertText' && /\d/.test(event.data)) {
       if (input._rawDigits.length < 9) {
-        input._rawDigits += lastChar;
+        input._rawDigits += event.data;
       }
     }
 
@@ -109,6 +108,6 @@
     input.value = masked;
   }
 </script>
-</script>
+  
 </body>
 </html>
